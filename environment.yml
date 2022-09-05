@@ -11,6 +11,7 @@ dependencies:
   - pip:
     - tensorflow>=2.5.0
     - tensorflow-probability>=0.8.0
+    - brotli
     - --pre umap-learn
     - umap 
   - python=3.7

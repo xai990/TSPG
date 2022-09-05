@@ -11,7 +11,7 @@ import sklearn.decomposition
 import sklearn.manifold
 import sklearn.preprocessing
 import sys
-import umap.plot
+import umap
 import utils
 
 

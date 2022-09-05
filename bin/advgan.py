@@ -3,7 +3,7 @@ from __future__ import print_function, division
 from keras.datasets import mnist
 from keras.layers import Input, Dense, Reshape, Flatten, Dropout
 from keras.layers import BatchNormalization, Activation, ZeroPadding2D
-from keras.layers.advanced_activations import LeakyReLU
+from keras.layers import LeakyReLU
 from keras.layers.convolutional import UpSampling2D, Conv2D
 from keras.models import Sequential, Model
 from tensorflow.keras.optimizers import Adam
@@ -14,7 +14,7 @@ import sys
 
 import numpy as np
 import os
-import umap.plot
+import umap
 import seaborn as sns
 import cycler
 import matplotlib.cm as cm
