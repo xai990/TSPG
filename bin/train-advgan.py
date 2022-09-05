@@ -26,7 +26,7 @@ if __name__ == '__main__':
     parser.add_argument('--set', help='gene set to run')
     parser.add_argument('--output-dir', help='Output directory', default='.')
     parser.add_argument('--test-size', help='proportional test set size', type=float, default=0.2)
-    parser.add_argument('--epochs', help='number of training epochs', type=int, default=200)
+    parser.add_argument('--epochs', help='number of training epochs', type=int, default=5000)
     parser.add_argument('--batch-size', help='minibatch size', type=int, default=128)
 
     args = parser.parse_args()
