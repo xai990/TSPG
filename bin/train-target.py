@@ -18,6 +18,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', help='input dataset (samples x genes)', required = True)
     parser.add_argument('--labels', help='list of sample labels', required = True)
+    parser.add_argument('--perturb-data', help='perturb data (samples x genes)', required=True)
     parser.add_argument('--gene-sets', help='list of curated gene sets')
     parser.add_argument('--set', help='specific gene set to run')
     parser.add_argument('--output-dir', help='output directory', default='.')
@@ -31,8 +32,7 @@ if __name__ == '__main__':
     print('loading input dataset...')
 
     df = utils.load_dataframe(args.dataset)
-    #df = df.drop(['Entrez_Gene_Id'], axis=1)
-    #df = df.T
+    df_perturb = utils.load_dataframe(args.perturb_data)
     df_samples = df.index
     df_genes = df.columns
 
@@ -40,14 +40,16 @@ if __name__ == '__main__':
 
     print('loaded input dataset (%s genes, %s samples)' % (df.shape[1], df.shape[0]))
 
-    # impute missing values
-    df.fillna(value=0, inplace=True)
-    df[df < 0] = 0
+
     # sort labels to match data if needed
     if (df.index != labels.index).any():
         print('warning: data and labels are not ordered the same, re-ordering labels')
         labels = labels.loc[df.index]
-
+    
+    # drop the missing values
+    df = df.dropna(axis=1)
+    df_perturb = df_perturb.dropna(axis=1)
+    
     # load gene sets file if it was provided
     if args.gene_sets != None:
         print('loading gene sets...')
@@ -70,7 +72,9 @@ if __name__ == '__main__':
         print('error: gene set is not the subset file provided')
         sys.exit(1)
 
-
+    # only keep the genes with values 
+    com_cols = np.intersect1d(df.columns, df_perturb.columns)
+    genes = np.intersect1d(com_cols, genes).tolist()
     # extract dataset
     X = df[genes]
     y = keras.utils.to_categorical(labels, num_classes=len(classes))

@@ -9,7 +9,7 @@ import sklearn.model_selection
 import sklearn.preprocessing
 import sys
 from tensorflow import keras
-import advgan
+import wadvgan
 import target_model
 import utils
 
@@ -20,13 +20,14 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', help='input dataset (samples x genes)', required=True)
     parser.add_argument('--labels', help='list of sample labels', required=True)
+    parser.add_argument('--perturb-data', help='perturb data (samples x genes)', required=True)
     parser.add_argument('--gene-sets', help='list of curated gene sets')
     parser.add_argument('--target', help='target class', required=True)
     parser.add_argument('--target-cov', help='covariance matrix for target distribution', choices=['diagonal', 'full'], default='full')
     parser.add_argument('--set', help='gene set to run')
     parser.add_argument('--output-dir', help='Output directory', default='.')
     parser.add_argument('--test-size', help='proportional test set size', type=float, default=0.2)
-    parser.add_argument('--epochs', help='number of training epochs', type=int, default=5000)
+    parser.add_argument('--epochs', help='number of training epochs', type=int, default=10001)
     parser.add_argument('--batch-size', help='minibatch size', type=int, default=128)
 
     args = parser.parse_args()
@@ -35,6 +36,7 @@ if __name__ == '__main__':
     print('loading input dataset...')
 
     df = utils.load_dataframe(args.dataset)
+    df_perturb = utils.load_dataframe(args.perturb_data)
     df_samples = df.index
     df_genes = df.columns
 
@@ -42,16 +44,17 @@ if __name__ == '__main__':
 
     print('loaded input dataset (%s genes, %s samples)' % (df.shape[1], df.shape[0]))
 
-    # impute missing values
-    df.fillna(value=0, inplace=True)
-    df[df < 0] = 0
 
     # sort labels to match data if needed
     if (df.index != labels.index).any():
         print('warning: data and labels are not ordered the same, re-ordering labels')
         labels = labels.loc[df.index]
 
-     # determine target class
+    # drop the missing values
+    df = df.dropna(axis=1)
+    df_perturb = df_perturb.dropna(axis=1)
+    
+    # determine target class
     try:
         args.target = classes.index(args.target)
         print('target class is: %s' % (classes[args.target]))
@@ -84,7 +87,10 @@ if __name__ == '__main__':
     if len(genes) > 10000 and args.target_cov == 'full':
         print('warning: gene set is very large, consider using --target-cov=diagonal')
 
-
+    
+    # only keep the genes with values 
+    com_cols = np.intersect1d(df.columns, df_perturb.columns)
+    genes = np.intersect1d(com_cols, genes).tolist()
     # extract dataset
     X = df[genes]
     y = keras.utils.to_categorical(labels, num_classes=len(classes))
@@ -115,7 +121,7 @@ if __name__ == '__main__':
         target_cov = np.std(target_data, axis=0)
 
     # create advgan model
-    model = advgan.GAN(
+    model = wadvgan.WGAN(
         n_inputs=len(genes),
         n_classes=len(classes),
         classes = classes,
