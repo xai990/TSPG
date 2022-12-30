@@ -10,7 +10,7 @@ import sklearn.model_selection
 import sklearn.preprocessing
 import sys
 from tensorflow import keras
-import advgan
+import wadvgan
 import utils
 
 
@@ -35,7 +35,7 @@ def perturb_classes(x, y, classes, target):
 
 def perturb_samples(x, y, classes, target, output_dir='.'):
     # load pre-trained advgan model
-    model = advgan.GAN(
+    model = wadvgan.WGAN(
         n_inputs=x.shape[1],
         n_classes=len(classes),
         classes = classes,
@@ -83,11 +83,6 @@ if __name__ == '__main__':
     print('loaded perturb data (%s genes, %s samples)' % (df_perturb.shape[1], df_perturb.shape[0]))
 
 
-    # impute missing values
-    df_train.fillna(value=0, inplace=True)
-    df_perturb.fillna(value=0, inplace=True)
-    df_train[df_train < 0] = 0
-    df_perturb[df_perturb < 0] = 0
 
     # sort labels to match data if needed
     if (df_train.index != y_train.index).any():
@@ -98,7 +93,9 @@ if __name__ == '__main__':
         print('warning: perturb data and labels are not ordered the same, re-ordering labels')
         y_perturb = y_perturb.loc[df_perturb.index]
 
-
+    # drop the missing values
+    df_train = df_train.dropna(axis=1)
+    df_perturb = df_perturb.dropna(axis=1)
     # sanitize class names
     classes = [utils.sanitize(c) for c in classes]
 
@@ -131,11 +128,13 @@ if __name__ == '__main__':
         sys.exit(1)
 
 
-
+    # only keep the genes with values 
+    com_cols = np.intersect1d(df_train.columns, df_perturb.columns)
+    genes = np.intersect1d(com_cols, genes).tolist()
     # extract train/perturb data
     x_train = df_train[genes]
     x_perturb = df_perturb[genes]
-
+    
     y_train = keras.utils.to_categorical(y_train, num_classes=len(classes))
     y_perturb = keras.utils.to_categorical(y_perturb, num_classes=len(classes))
 
