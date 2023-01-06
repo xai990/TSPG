@@ -40,11 +40,12 @@ echo "PHASE 1: TRAIN TARGET MODEL"
 echo
 
 ${TSPG_DIR}/bin/train-target.py \
-    --dataset    ${TRAIN_DATA} \
-    --labels     ${TRAIN_LABELS} \
-    --gene-sets  ${GMT_FILE} \
-    --set        ${GENE_SET} \
-    --output-dir ${TSPG_DIR}/${OUTPUT_DIR}
+    --dataset        ${TRAIN_DATA} \
+    --labels         ${TRAIN_LABELS} \
+    --perturb-data   ${PERTURB_DATA}\
+    --gene-sets      ${GMT_FILE} \
+    --set            ${GENE_SET} \
+    --output-dir     ${TSPG_DIR}/${OUTPUT_DIR}
 
 # train AdvGAN model on a gene set
 echo
@@ -52,11 +53,12 @@ echo "PHASE 2: TRAIN PERTURBATION GENERATOR"
 echo
 
 ${TSPG_DIR}/bin/train-advgan.py \
-    --dataset    ${TRAIN_DATA} \
-    --labels     ${TRAIN_LABELS} \
-    --gene-sets  ${GMT_FILE} \
-    --set        ${GENE_SET} \
-    --target     ${TARGET_CLASS} \
+    --dataset        ${TRAIN_DATA} \
+    --labels         ${TRAIN_LABELS} \
+    --perturb-data   ${PERTURB_DATA}\
+    --gene-sets      ${GMT_FILE} \
+    --set            ${GENE_SET} \
+    --target         ${TARGET_CLASS} \
     --target-cov diagonal \
     --output-dir ${TSPG_DIR}/${OUTPUT_DIR}
 
@@ -91,8 +93,8 @@ ${TSPG_DIR}/bin/visualize.py \
     --output-dir      ${TSPG_DIR}/${OUTPUT_DIR} \
     --tsne \
     --umap \
-    --tsne-npca 50 \
-    --heatmap
+    --tsne-npca 50 
+#--heatmap 
 
 # save output data to permanent storage
 #rm -rf ${OUTPUT_DIR}
